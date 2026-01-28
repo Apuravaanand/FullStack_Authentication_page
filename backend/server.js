@@ -9,6 +9,7 @@ import compression from "compression";
 import morgan from "morgan";
 import path from "path";
 import { fileURLToPath } from "url";
+import { sendEmail } from "./config/mailer.js";
 
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
