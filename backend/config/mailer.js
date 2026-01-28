@@ -1,11 +1,22 @@
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
-dotenv.config({ path: '../.env' }); // important: adjust path if needed
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// 🔥 ALWAYS load .env relative to THIS FILE
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
+
+// Debug (remove later)
+console.log("EMAIL_HOST:", process.env.EMAIL_HOST);
+console.log("EMAIL_PORT:", process.env.EMAIL_PORT);
 
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
   port: Number(process.env.EMAIL_PORT),
-  secure: Number(process.env.EMAIL_PORT) === 465, // true for 465, false for 587
+  secure: Number(process.env.EMAIL_PORT) === 465,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
