@@ -17,18 +17,21 @@ export default function VerifyOTP() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!otp) return setMessage("Please enter OTP");
+    if (!otp) {
+      setMessage("Please enter the OTP");
+      return;
+    }
 
     setMessage("");
     setLoading(true);
-
     try {
       const data = await verifyOtp({ email, otp });
       setToken(data.token);
       setUser({ _id: data._id, name: data.name, email: data.email });
       navigate("/dashboard");
     } catch (err) {
-      setMessage(err.response?.data?.message || "Something went wrong!");
+      console.error(err);
+      setMessage(err.response?.data?.message || "Something went wrong. Try again.");
     } finally {
       setLoading(false);
     }
