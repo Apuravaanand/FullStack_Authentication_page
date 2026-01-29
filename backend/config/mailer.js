@@ -1,30 +1,32 @@
-import dotenv from "dotenv";
-dotenv.config();
-import nodemailer from "nodemailer";
+import fetch from "node-fetch"; // npm install node-fetch
 
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST,
-  port: process.env.EMAIL_PORT,
-  secure: true, // 465 uses SSL
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
-
-/**
- * Fire-and-forget email sending.
- * Does NOT block API response.
- */
-const sendEmail = (email, otp, type = "verify") => {
+export const sendOtpEmail = async (toEmail, otp, type = "verify") => {
   const subject = type === "reset" ? "Password Reset OTP" : "Email Verification OTP";
+  const html = `<p>Your OTP is: <strong>${otp}</strong></p>`;
 
-  transporter.sendMail({
-    from: process.env.EMAIL_USER,
-    to: email,
-    subject,
-    text: `Your OTP is ${otp}`,
-  }).catch(err => console.error("Email send error:", err.message));
+  if (!process.env.RESEND_API_KEY) {
+    console.error("❌ RESEND_API_KEY is undefined!");
+    return;
+  }
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: "no-reply@yourdomain.com", // use your verified sender
+        to: toEmail,
+        subject,
+        html,
+      }),
+    });
+
+    const data = await res.json();
+    console.log(`✅ OTP sent to ${toEmail}:`, data.id || data);
+  } catch (err) {
+    console.error("❌ OTP send failed:", err);
+  }
 };
-
-export default sendEmail;

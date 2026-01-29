@@ -1,24 +1,28 @@
 import asyncHandler from "express-async-handler";
-import bcrypt from "bcryptjs";
 import User from "../models/User.js";
-import sendEmail from "../config/mailer.js";
+import { sendOtpEmail } from "../config/mailer.js";
 import generateToken from "../utils/generateToken.js";
+import bcrypt from "bcryptjs";
 
 /* ----------------- REGISTER ----------------- */
 export const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
   if (!name || !email || !password) throw new Error("All fields required");
 
-  if (await User.findOne({ email })) throw new Error("User already exists");
+  const userExists = await User.findOne({ email });
+  if (userExists) throw new Error("User already exists");
 
   const user = await User.create({ name, email, password, isVerified: false });
-
   const otp = await user.generateOtp("verify");
   await user.save();
 
-  sendEmail(email, otp, "verify"); // fire-and-forget
+  // Send OTP asynchronously
+  sendOtpEmail(email, otp, "verify").catch(console.error);
 
-  res.status(201).json({ success: true, message: "Registration successful. OTP sent to email" });
+  res.status(201).json({
+    success: true,
+    message: "Registration successful. OTP sent to your email",
+  });
 });
 
 /* ----------------- VERIFY OTP ----------------- */
@@ -39,17 +43,20 @@ export const verifyOtp = asyncHandler(async (req, res) => {
   user.otpExpiry = undefined;
   await user.save();
 
-  res.json({ success: true, token: generateToken(user._id), message: "Email verified successfully" });
+  res.json({ success: true, token: generateToken(user._id), message: "Email verified" });
 });
 
 /* ----------------- LOGIN ----------------- */
 export const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-  if (!email || !password) throw new Error("Email and password required");
+  if (!email || !password)
+    return res.status(400).json({ success: false, message: "Email and password required" });
 
   const user = await User.findOne({ email }).select("+password");
-  if (!user || !(await user.matchPassword(password))) throw new Error("Invalid email or password");
-  if (!user.isVerified) throw new Error("Please verify your email first");
+  if (!user || !(await bcrypt.compare(password, user.password)))
+    return res.status(400).json({ success: false, message: "Invalid credentials" });
+  if (!user.isVerified)
+    return res.status(400).json({ success: false, message: "Please verify your email first" });
 
   res.json({ success: true, token: generateToken(user._id) });
 });
