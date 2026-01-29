@@ -2,7 +2,7 @@ import axios from "axios";
 
 const API_URL =
   import.meta.env.VITE_API_URL ||
-  "https://authentication-app-m9n2.onrender.com";
+  "https://authentication-app-uquo.onrender.com";
 
 const api = axios.create({
   baseURL: API_URL,

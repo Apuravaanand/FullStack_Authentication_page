@@ -35,7 +35,7 @@ app.use(express.json());
 // CORS
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "https://authentication-app-m9n2.onrender.com", // frontend dev server
+    origin: process.env.CLIENT_URL || "https://authentication-app-uquo.onrender.com", // frontend dev server
     credentials: true,
   })
 );
