@@ -2,7 +2,7 @@ import axios from "axios";
 
 const BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
 
-const sendEmail = async (to, otp, type = "verify") => {
+const sendOtpEmail = async (to, otp, type = "verify") => {
   const subject =
     type === "reset"
       ? "Password Reset OTP"
@@ -44,4 +44,4 @@ const sendEmail = async (to, otp, type = "verify") => {
   }
 };
 
-export default sendEmail;
+export default sendOtpEmail;

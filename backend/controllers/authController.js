@@ -1,5 +1,6 @@
 import asyncHandler from "express-async-handler";
 import User from "../models/User.js";
+import sendOtpEmail  from "../config/mailer.js";
 import generateToken from "../utils/generateToken.js";
 import bcrypt from "bcryptjs";
 
@@ -16,7 +17,7 @@ export const registerUser = asyncHandler(async (req, res) => {
   await user.save();
 
   // Send OTP asynchronously
-  sendEmail(email, otp, "verify").catch(console.error);
+  sendOtpEmail(email, otp, "verify").catch(console.error);
 
   res.status(201).json({
     success: true,
