@@ -1,6 +1,6 @@
 import asyncHandler from "express-async-handler";
 import User from "../models/User.js";
-import sendOtpEmail  from "../config/mailer.js";
+import {sendOtpEmail}  from "../config/mailer.js";
 import generateToken from "../utils/generateToken.js";
 import bcrypt from "bcryptjs";
 
