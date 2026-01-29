@@ -1,34 +1,30 @@
 import dotenv from "dotenv";
 dotenv.config();
-
 import nodemailer from "nodemailer";
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
+  host: process.env.EMAIL_HOST,
+  port: process.env.EMAIL_PORT,
+  secure: true, // 465 uses SSL
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
 });
 
-transporter.verify((err) => {
-  if (err) console.log("❌ SMTP VERIFY ERROR:", err.message);
-  else console.log("✅ SMTP VERIFIED");
-});
+/**
+ * Fire-and-forget email sending.
+ * Does NOT block API response.
+ */
+const sendEmail = (email, otp, type = "verify") => {
+  const subject = type === "reset" ? "Password Reset OTP" : "Email Verification OTP";
 
-const sendEmail = async (email, otp) => {
-  console.log("➡️ Sending OTP:", otp, "to", email);
-
-  await transporter.sendMail({
+  transporter.sendMail({
     from: process.env.EMAIL_USER,
     to: email,
-    subject: "Your OTP",
+    subject,
     text: `Your OTP is ${otp}`,
-  });
-
-  console.log("✅ OTP Email Sent");
+  }).catch(err => console.error("Email send error:", err.message));
 };
 
 export default sendEmail;

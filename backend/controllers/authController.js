@@ -1,4 +1,5 @@
 import asyncHandler from "express-async-handler";
+import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import sendEmail from "../config/mailer.js";
 import generateToken from "../utils/generateToken.js";
@@ -8,20 +9,16 @@ export const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
   if (!name || !email || !password) throw new Error("All fields required");
 
-  const userExists = await User.findOne({ email });
-  if (userExists) throw new Error("User already exists");
+  if (await User.findOne({ email })) throw new Error("User already exists");
 
   const user = await User.create({ name, email, password, isVerified: false });
+
   const otp = await user.generateOtp("verify");
   await user.save();
 
-  try {
-    await sendEmail(email, otp, "verify");
-  } catch (err) {
-    console.error("OTP email failed:", err);
-  }
+  sendEmail(email, otp, "verify"); // fire-and-forget
 
-  res.status(201).json({ success: true, message: "Registration successful. OTP sent to your email" });
+  res.status(201).json({ success: true, message: "Registration successful. OTP sent to email" });
 });
 
 /* ----------------- VERIFY OTP ----------------- */
@@ -68,7 +65,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
   const otp = await user.generateOtp("reset");
   await user.save();
 
-  await sendEmail(email, otp, "reset");
+  sendEmail(email, otp, "reset"); // fire-and-forget
 
   res.json({ success: true, message: "Password reset OTP sent to email" });
 });
